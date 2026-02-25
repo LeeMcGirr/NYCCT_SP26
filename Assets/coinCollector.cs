@@ -12,15 +12,16 @@ public class coinCollector : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.tag == "coin")
-        {
-            score += 1;
-            Destroy(collision.gameObject);
-        }
+
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
 
+    }
+
+    public void AddScore(int s)
+    {
+        score += s;
     }
 }
