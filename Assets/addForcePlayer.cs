@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class addForcePlayer : MonoBehaviour
@@ -10,6 +11,9 @@ public class addForcePlayer : MonoBehaviour
     public GameManager myGM;
     public GameObject Camera;
     public Camera myCam;
+    public CinemachineCamera activeCam;
+    float camDefaultSize;
+
 
     public float score = 0;
     public Rigidbody2D myRB;
@@ -19,6 +23,14 @@ public class addForcePlayer : MonoBehaviour
 
     public bool grounded;
     public SpriteRenderer mySprite;
+    public TrailRenderer engineExhaust;
+    public TrailRenderer[] contrails;
+
+    [Header("audio vars")]
+    public AudioSource collisionAudio;
+    public AudioClip jumpPadAudioClip;
+    public AudioClip wallHitClip;
+    public AudioClip collectCoin;
     
     //awake runs BEFORE start, so it's best for any self-referential script and component values
     void Awake()
@@ -42,8 +54,10 @@ public class addForcePlayer : MonoBehaviour
         //find can use strings as an argument - for the name
         Camera = GameObject.Find("Main Camera");
         Camera = GameObject.FindGameObjectWithTag("MainCamera");
-
         myCam = Camera.GetComponent<Camera>();
+
+        activeCam = GameObject.FindFirstObjectByType<CinemachineCamera>();
+        camDefaultSize = activeCam.Lens.OrthographicSize;
 
 
 
@@ -53,6 +67,16 @@ public class addForcePlayer : MonoBehaviour
     void Update()
     {
         inputDir = Direction();
+        if(inputDir == Vector3.zero)
+        {
+            engineExhaust.emitting = false;
+        }
+        else
+        {
+            engineExhaust.emitting = true;
+        }
+
+
         inputDir.y *= ySpeed;
         inputDir.x *= speed;
         //Debug.Log("player input: " + inputDir);
@@ -61,6 +85,24 @@ public class addForcePlayer : MonoBehaviour
         //to update every time the frame renders
         //Vector3 newCamPos = new Vector3(transform.position.x, transform.position.y, Camera.transform.position.z);
         //Camera.transform.position = newCamPos;
+
+        if(grounded)
+        {
+            for(int i = 0; i < contrails.Length; i = i+1)
+            {
+                contrails[i].emitting = false;
+            }
+        }
+        else
+        {
+            foreach(TrailRenderer tr in contrails)
+            {
+                tr.emitting = true;
+            }
+        }
+
+
+        activeCam.Lens.OrthographicSize = camDefaultSize + myRB.linearVelocity.magnitude*.1f;
     }
     //FixedUpdate is called once every physics frame
     void FixedUpdate()
@@ -69,6 +111,31 @@ public class addForcePlayer : MonoBehaviour
         Vector3 newForce = inputDir * Time.fixedDeltaTime;
         myRB.AddForce(newForce);
 
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.name == "JumpPad")
+        {
+            collisionAudio.clip = jumpPadAudioClip;
+            collisionAudio.Play();
+        }
+        else if(collision.gameObject.tag == "coin")
+        {
+            collisionAudio.clip = collectCoin;
+            collisionAudio.Play();
+        }
+        else
+        {
+            collisionAudio.clip = wallHitClip;
+            collisionAudio.Play();
+        }
+
+        if(collision.gameObject.tag == "ground")
+        {
+            CinemachineCollisionImpulseSource source = collision.gameObject.GetComponent<CinemachineCollisionImpulseSource>();
+            source.DefaultVelocity = source.DefaultVelocity.normalized * myRB.linearVelocity.magnitude;
+        }
     }
 
     void OnCollisionStay2D(Collision2D collision)

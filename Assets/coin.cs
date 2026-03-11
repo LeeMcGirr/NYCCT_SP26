@@ -4,6 +4,7 @@ public class coin : MonoBehaviour
 {
     public int value = 1;
     public float explosionForce = 500;
+    public GameObject deathParticles;
     void Start()
     {
         
@@ -26,6 +27,7 @@ public class coin : MonoBehaviour
             //distance.normalized has a length of 1 
             player.GetComponent<Rigidbody2D>().AddForce(distance.normalized*explosionForce);
 
+            Instantiate(deathParticles, transform.position, Quaternion.identity);
             Destroy(this.gameObject);
         }
 

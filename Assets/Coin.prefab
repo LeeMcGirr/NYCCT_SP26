@@ -144,6 +144,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::coin
   value: 1
   explosionForce: 1000
+  deathParticles: {fileID: 6636215686416274417, guid: cc748f1616d67b24fa8f29cadd1106ea, type: 3}
 --- !u!1 &5357968875092604565
 GameObject:
   m_ObjectHideFlags: 0
